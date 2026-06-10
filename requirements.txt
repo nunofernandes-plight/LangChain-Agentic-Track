@@ -1,0 +1,13 @@
+# LangChain Core and Anthropic Integration
+langchain-core
+langchain-anthropic
+
+# Agent Orchestration Framework
+langgraph
+
+# Database and Vector Search Drivers
+pymongo
+
+# Environment and Data Validation Utilities
+python-dotenv
+pydantic
