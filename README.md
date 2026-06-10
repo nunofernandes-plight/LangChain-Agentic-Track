@@ -99,7 +99,7 @@ Here is your foundational code to establish the abstract database layer, initial
 
 **1. Clean DB Abstraction & Anthropic Initialization**
 
-```
+```Python 
 import os
 from abc import ABC, abstractmethod
 from pymongo import MongoClient
@@ -139,7 +139,7 @@ llm = ChatAnthropic(
 
 **2. Basic LangGraph State Definition & Setup**
 
-```
+```Python
 from typing import TypedDict, Annotated, Sequence
 import operator
 from langchain_core.messages import BaseMessage
