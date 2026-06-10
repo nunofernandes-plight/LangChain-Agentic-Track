@@ -93,10 +93,87 @@ As your Senior AI Curriculum Architect, I have designed this 6-week intensive ma
 > 
 > 
 
----
-
 ### **Boilerplate Playbook: Kickstarting Your Architecture**
 
 Here is your foundational code to establish the abstract database layer, initialize Anthropic, and define a LangGraph state.
 
 **1. Clean DB Abstraction & Anthropic Initialization**
+
+```
+import os
+from abc import ABC, abstractmethod
+from pymongo import MongoClient
+from langchain_anthropic import ChatAnthropic
+
+# 1. Abstract Base Class for Database Modularity
+class BaseMetadataLogger(ABC):
+    @abstractmethod
+    def log_session(self, session_id: str, metadata: dict):
+        pass
+
+# 2. MongoDB Implementation
+class MongoMetadataLogger(BaseMetadataLogger):
+    def __init__(self, uri: str, db_name: str):
+        self.client = MongoClient(uri)
+        self.db = self.client[db_name]
+        self.collection = self.db["agent_sessions"]
+
+    def log_session(self, session_id: str, metadata: dict):
+        self.collection.update_one(
+            {"session_id": session_id},
+            {"$set": metadata},
+            upsert=True
+        )
+
+# 3. Initialize the Core LLM
+llm = ChatAnthropic(
+    model="claude-3-5-sonnet-20240620",
+    temperature=0.2,
+    max_tokens=1024,
+    api_key=os.getenv("ANTHROPIC_API_KEY")
+)
+
+# Usage
+# logger = MongoMetadataLogger(uri="mongodb+srv://...", db_name="agent_db")
+```
+
+**2. Basic LangGraph State Definition & Setup**
+
+```
+from typing import TypedDict, Annotated, Sequence
+import operator
+from langchain_core.messages import BaseMessage
+from langgraph.graph import StateGraph, START, END
+
+# 1. Define the State (This is the memory passed between nodes)
+# The `Annotated[Sequence[BaseMessage], operator.add]` ensures messages 
+# are appended to the list, not overwritten.
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+    session_id: str
+    requires_human_approval: bool
+
+# 2. Define a basic Node function
+def reasoning_node(state: AgentState):
+    print("--- Thinking ---")
+    # In reality, this calls `llm.invoke(state["messages"])`
+    # and returns {"messages": [new_ai_message]}
+    return {"messages": []}
+
+# 3. Build the Graph
+workflow = StateGraph(AgentState)
+
+# Add nodes
+workflow.add_node("reason", reasoning_node)
+
+# Add edges
+workflow.add_edge(START, "reason")
+workflow.add_edge("reason", END)
+
+# Compile the graph
+app = workflow.compile()
+
+```
+
+
+
