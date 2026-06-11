@@ -97,7 +97,62 @@ As your Senior AI Curriculum Architect, I have designed this 6-week intensive ma
 
 Here is your foundational code to establish the abstract database layer, initialize Anthropic, and define a LangGraph state.
 
-**1. Clean DB Abstraction & Anthropic Initialization**
+**1. Project Directory Structure**
+  Create a clean directory for your learning track to keep things organized:
+
+  ```Bash
+mkdir langchain-agentic-track
+cd langchain-agentic-track
+```
+
+**2. Environment Variables (.env)**
+Create a file named .env in the root of your project folder. This file stores your secret credentials securely. Paste the following configuration inside it:
+
+```env
+# Core LLM Provider Configuration
+ANTHROPIC_API_KEY="your_anthropic_api_key_here"
+
+# Data Layer Configuration (MongoDB Atlas)
+MONGO_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority"
+MONGO_DB_NAME="agentic_ai_learning"
+
+# Production Ops & Observability (LangSmith)
+# Setting these to "true" automatically sends traces to your LangSmith dashboard
+LANGCHAIN_TRACING_V2="true"
+LANGCHAIN_API_KEY="your_langsmith_api_key_here"
+LANGCHAIN_PROJECT="agentic-learning-track"
+```
+
+**3. Package Installation (requirements.txt)**
+Create a requirements.txt file to lock down the specific library ecosystems you will use throughout the 6-week curriculum:
+
+```text
+# LangChain Core and Anthropic Integration
+langchain-core
+langchain-anthropic
+
+# Agent Orchestration Framework
+langgraph
+
+# Database and Vector Search Drivers
+pymongo
+
+# Environment and Data Validation Utilities
+python-dotenv
+pydantic
+```
+
+Run the following command in your terminal to install everything:
+```Bash
+pip install -r requirements.txt
+```
+
+
+
+
+
+
+**4. Clean DB Abstraction & Anthropic Initialization**
 
 ```Python 
 import os
@@ -137,7 +192,7 @@ llm = ChatAnthropic(
 # logger = MongoMetadataLogger(uri="mongodb+srv://...", db_name="agent_db")
 ```
 
-**2. Basic LangGraph State Definition & Setup**
+**5. Basic LangGraph State Definition & Setup**
 
 ```Python
 from typing import TypedDict, Annotated, Sequence
@@ -173,6 +228,62 @@ workflow.add_edge("reason", END)
 # Compile the graph
 app = workflow.compile()
 
+```
+
+**6. Verification Script (test_env.py)**
+Create a quick script named test_env.py to ensure your Python environment is successfully reading your keys and initializing the clients:
+
+```Python
+import os
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from langchain_anthropic import ChatAnthropic
+
+# Load the environment variables from the .env file
+load_dotenv()
+
+def verify_environment():
+    print("Checking environment setup...")
+    
+    # 1. Test Anthropic Configuration
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key:
+        try:
+            # Initialize the model (Claude 3.5 Sonnet is standard for complex routing)
+            llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0)
+            print(" Anthropic Client initialized successfully.")
+        except Exception as e:
+            print(f" Anthropic Initialization Failed: {e}")
+    else:
+        print(" Missing ANTHROPIC_API_KEY in .env file.")
+
+    # 2. Test MongoDB Configuration
+    mongo_uri = os.getenv("MONGO_URI")
+    if mongo_uri:
+        try:
+            client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+            # Trigger a quick connection check
+            client.admin.command('ping')
+            print(" MongoDB Connection successful.")
+        except Exception as e:
+            print(f" MongoDB Connection Failed: {e}")
+    else:
+        print(" Missing MONGO_URI in .env file.")
+
+    # 3. Test LangSmith Configuration
+    if os.getenv("LANGCHAIN_TRACING_V2") == "true":
+        print(" LangSmith tracing is active. Traces will stream automatically.")
+    else:
+        print(" LangSmith tracing is disabled.")
+
+if __name__ == "__main__":
+    verify_environment()
+```
+
+Run it using:
+
+```Bash
+python test_env.py
 ```
 
 
